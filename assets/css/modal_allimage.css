@@ -1,0 +1,25 @@
+
+  .cont{
+    width:720px;
+  }
+  .container{
+    display:flex;
+    flex-wrap:wrap;
+    width:1000px;
+    justify-content:flex-start;
+  }
+  .single-item{
+    width:100px;
+    height:100px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background-color:#f3f3f3;
+    margin: 5px;
+    border-radius: 10px;
+    color:#888;
+  }
+  .pagination{
+    padding:20px;
+    text-align: center;
+  }

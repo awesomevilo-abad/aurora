@@ -1,0 +1,29 @@
+/* Add here all your CSS customizations */
+
+.no-remarks-a{
+	background-color:#d5939252;
+	text-align: center;
+	font-size: 10px;
+}
+.no-remarks-b{
+	background-color:rgba(212, 74, 39, 0.102);
+	text-align: center;
+	font-size: 10px;
+}
+
+.gallery{
+	margin:100px 100px;
+	
+}
+
+.gallery img{
+	transition: 1s;
+	padding:15px;
+	width: 200px;
+}
+
+.gallery img:hover{
+ filter:grayscale(100%);
+ transform: scale(1.1);
+	
+}

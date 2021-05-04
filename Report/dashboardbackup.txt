@@ -1,0 +1,591 @@
+<?php  
+ session_start(); 
+ include_once 'startchecklist/Class.php';
+ $crudcontroller = new CrudController();
+ $dao = new Dao();
+ $conn = $dao->openConnection();
+ $Datetoday = $crudcontroller->getDate();
+ echo $_SESSION['position'];
+
+
+    $dataPoints = array();
+    //Best practice is to create a separate file for handling connection to database
+    try{
+        // Creating a new connection.
+        // Replace your-hostname, your-db, your-username, your-password according to your database
+     
+        
+        $handle = $conn->prepare('SELECT protect_sani_grade, protect_stru_grade, protect_equip_grade from timedatephase'); 
+        $handle->execute(); 
+        $result = $handle->fetchAll(\PDO::FETCH_OBJ);
+            
+        foreach($result as $row){
+            array_push($dataPoints, array("x"=> $row->protect_sani_grade, "y"=> $row->protect_stru_grade, "z"=> $row->protect_equip_grade));
+            
+        }
+        $link = null;
+    }
+    catch(\PDOException $ex){
+        print($ex->getMessage());
+    }
+        
+    ?>
+<!doctype html>
+<html class="fixed sidebar-left-collapsed">
+	<head>
+
+		<!-- Basic -->
+		<meta charset="UTF-8">
+
+		<title>Aurora</title>
+		<meta name="keywords" content="HTML5 Admin Template" />
+		<meta name="description" content="Porto Admin - Responsive HTML5 Template">
+		<meta name="author" content="okler.net">
+
+		<!-- Mobile Metas -->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+		<!-- Web Fonts  -->
+		<link href="http://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800|Shadows+Into+Light" rel="stylesheet" type="text/css">
+
+		<!-- Vendor CSS -->
+		<link rel="stylesheet" href="assets/vendor/bootstrap/css/bootstrap.css" />
+		<link rel="stylesheet" href="assets/vendor/font-awesome/css/font-awesome.css" />
+		<link rel="stylesheet" href="assets/vendor/magnific-popup/magnific-popup.css" />
+		<link rel="stylesheet" href="assets/vendor/bootstrap-datepicker/css/datepicker3.css" />
+
+		<!-- Specific Page Vendor CSS -->
+		<link rel="stylesheet" href="assets/vendor/jquery-ui/css/ui-lightness/jquery-ui-1.10.4.custom.css" />
+		<link rel="stylesheet" href="assets/vendor/select2/select2.css" />
+		<link rel="stylesheet" href="assets/vendor/bootstrap-multiselect/bootstrap-multiselect.css" />
+		<link rel="stylesheet" href="assets/vendor/bootstrap-tagsinput/bootstrap-tagsinput.css" />
+		<link rel="stylesheet" href="assets/vendor/bootstrap-colorpicker/css/bootstrap-colorpicker.css" />
+		<link rel="stylesheet" href="assets/vendor/bootstrap-timepicker/css/bootstrap-timepicker.css" />
+		<link rel="stylesheet" href="assets/vendor/dropzone/css/basic.css" />
+		<link rel="stylesheet" href="assets/vendor/dropzone/css/dropzone.css" />
+		<link rel="stylesheet" href="assets/vendor/bootstrap-markdown/css/bootstrap-markdown.min.css" />
+		<link rel="stylesheet" href="assets/vendor/summernote/summernote.css" />
+		<link rel="stylesheet" href="assets/vendor/summernote/summernote-bs3.css" />
+		<link rel="stylesheet" href="assets/vendor/codemirror/lib/codemirror.css" />
+		<link rel="stylesheet" href="assets/vendor/codemirror/theme/monokai.css" />
+		<link rel="stylesheet" href="assets/vendor/jquery-datatables-bs3/assets/css/datatables.css" />
+
+		<!-- Theme CSS -->
+		<link rel="stylesheet" href="assets/stylesheets/theme.css" />
+		<link rel="stylesheet" href="assets/stylesheets/theme-custom.css" />
+
+
+
+		<!-- Skin CSS -->
+		<link rel="stylesheet" href="assets/stylesheets/skins/default.css" />
+
+		<!-- Theme Custom CSS -->
+		<link rel="stylesheet" href="assets/stylesheets/theme-custom.css">
+
+		<!-- Head Libs -->
+		<script src="assets/vendor/modernizr/modernizr.js"></script>
+		<!-- pic -->
+		
+		<link rel="stylesheet" href="assets/css/lightbox.min.css" />
+		<script src="assets/js/lightbox-plus-jquery.min.js"></script>
+		
+        <script>
+            window.onload = function () {
+             
+            var chart = new CanvasJS.Chart("chartContainer", {
+                animationEnabled: true,
+                exportEnabled: true,
+                theme: "light2", // "light1", "light2", "dark1", "dark2"
+                title:{
+                    text: "Weekly Score Per Phase"
+                },
+                data: [{
+                    type: "column", //change type to bar, line, area, pie, etc  
+                    dataPoints: <?php echo json_encode($dataPoints, JSON_NUMERIC_CHECK); ?>
+                }]
+            });
+            chart.render();
+             
+            }
+        </script>
+
+	</head>
+	<body>
+		<section class="body">
+
+		<?php include 'header.php'?>
+
+			<div class="inner-wrapper">
+                <div id="sidebar" style="z-index:3px">
+                    <?php include 'usersidebar.php'?>
+                </div>
+
+				<section role="main" class="content-body">
+					<header class="page-header">
+						<h2>Dashboard</h2>
+					
+						<div class="right-wrapper pull-right">
+							
+					
+							<a class="sidebar-right-toggle" data-open="sidebar-right"><i class="fa fa-chevron-left"></i></a>
+						</div>
+					</header>
+
+                   
+
+                    <!-- FOR QA STAFF & PROTECH -->
+					<div class="col-md-12" style="display:" id="viewscores_phase">
+                        <section class="panel" style="background-color:#ffffff">
+                            <header class="panel-heading">
+                                <h2 class="panel-title">Summary of Scores</h2>
+                                    <p class="panel-subtitle">
+                                        Per Phase
+                                    </p>
+                            </header>
+                            <div class="form-group" style="margin-top:30px;">
+                                   
+                                   
+                                   <div class="col-sm-3">
+
+                                    Report Type: <select d-ata-plugin-selectTwo name="" id="changereport" class="form-control populate" onChange='changereporttype(this.value)' required>
+                                            <option value="viewscores_phase">Area Score</option>
+                                            <option value="viewscores_building">Phase Score</option>
+                                            <option value="viewitemfindings_sanitation">Sanitation Scores</option>
+                                            <option value="viewitemfindings_structural">Structural Scores</option>
+                                            <option value="viewitemfindings_equipment">Equipment Scores</option>
+                                            </select>
+                                            <?php
+                                            $pdo = new PDO('mysql:host=localhost;dbname=aurora', 'root', '');
+                                            $sql = "SELECT * FROM checklist_grade left join phase on checklist_grade.Pid=phase.Pid 
+                                            left join building on phase.Bid = building .id  Group By building.id";
+                                            $stmt = $pdo->prepare($sql);
+                                            $stmt->execute();
+                                            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                            if ($stmt->rowCount() > 0) { ?>
+                                    
+                                            Choose Phase <select data-plugin-selectTwo name="phase" id="phase" class="form-control populate" onChange='changedata(this.value)' required>
+                                                <?php foreach ($results as $row) { ?>
+                                                    <optgroup label="<?php echo $row['Name']?>">
+                                                        <option value="<?php echo $row['Pid']?>"><?php echo $row['PName']?></option>
+                                                    </optgroup>	
+                                                <?php } ?>
+                                            </select>
+                                            <?php } ?> 
+
+                                            <?php
+                                            $pdo = new PDO('mysql:host=localhost;dbname=aurora', 'root', '');
+                                            $sql = "SELECT * FROM checklist_grade left join phase on checklist_grade.Pid=phase.Pid 
+                                            left join building on phase.Bid = building .id  Group By checklist_grade.Date_Checked";
+                                            $stmt = $pdo->prepare($sql);
+                                            $stmt->execute();
+                                            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                            if ($stmt->rowCount() > 0) { ?>
+                                            
+                                            Choose Date: <div id="dateunset" style="color:#d2322d"> <strong>Choose Phase to select date</strong></div>
+                                            <div id="dateset"style="display:none">
+                                                <select data-plugin-selectTwo name="datedash" id="datedash" class="form-control populate" style="display:" onChange='changedate(this.value)' required>
+                                                            <option>All </option>
+                                                    <?php foreach ($results as $row) { ?>
+                                                            <option value="<?php echo $row['Date_Checked']?>"><?php echo $row['Date_Checked']?></option>
+                                                    <?php } ?>
+                                                </select>
+                                            </div>
+                                            <?php } ?> 
+
+                                    </div>
+                                    <div style="display:none" id="dashboardtable" class="col-sm-9"> </div>
+                            </div>
+
+                                <section class="panel">	
+                                    <div class="row mg-files" data-sort-destination data-sort-id="media-gallery">
+                                        <div class="isotope-item document">
+                                            <div style="margin:20px;">
+                                               
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+                        </section>
+                    </div>
+
+                    <div class="col-md-12" style="display:none" id="viewitemfindings_sanitation">
+                        <section class="panel" style="background-color:#ffffff">
+                            <header class="panel-heading">
+                                <h2 class="panel-title">Sanitation Findings</h2>
+                                    <p class="panel-subtitle">
+                                        Per Area
+                                    </p>
+                            </header>
+                            <div class="form-group" style="margin-top:30px;">
+                                 
+                                    
+                                     <div class="col-sm-3">
+
+                                        Report Type: <select d-ata-plugin-selectTwo name="" id="changereport" class="form-control populate" onChange='changereporttype(this.value)' required>
+                                                <option value="viewscores_phase">Area Score</option>
+                                                <option value="viewscores_building">Phase Score</option>
+                                                <option value="viewitemfindings_sanitation">Sanitation Scores</option>
+                                                <option value="viewitemfindings_structural">Structural Scores</option>
+                                                <option value="viewitemfindings_equipment">Equipment Scores</option>
+                                                </select>
+                                            <?php
+                                            $pdo = new PDO('mysql:host=localhost;dbname=aurora', 'root', '');
+                                            $sql = "SELECT * FROM checklist_grade left join area on checklist_grade.Aid = area.Aid left join phase on checklist_grade.Pid=phase.Pid 
+                                            left join building on phase.Bid = building .id  Group By building.id";
+                                            $stmt = $pdo->prepare($sql);
+                                            $stmt->execute();
+                                            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                            if ($stmt->rowCount() > 0) { ?>
+                                    
+                                            Choose Area <select data-plugin-selectTwo name="area_viewitemfindings" id="area_viewitemfindings" class="form-control populate" onChange='changedata_viewitemfindings(this.value)' required>
+                                                <?php foreach ($results as $row) { ?>
+                                                        <optgroup label="<?php echo $row['PName']?>">
+                                                            <option value="<?php echo $row['Aid']?>"><?php echo $row['AName']?></option>
+                                                        </optgroup>	
+                                                    
+                                                
+                                                <?php } ?>
+                                            </select>
+                                            <?php } ?> 
+
+                                            <?php
+                                            $pdo = new PDO('mysql:host=localhost;dbname=aurora', 'root', '');
+                                            $sql = "SELECT * FROM checklist_grade left join phase on checklist_grade.Pid=phase.Pid 
+                                            left join building on phase.Bid = building .id  Group By checklist_grade.Date_Checked";
+                                            $stmt = $pdo->prepare($sql);
+                                            $stmt->execute();
+                                            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                            if ($stmt->rowCount() > 0) { ?>
+                                            
+                                            Choose Date: <div id="dateunset_viewitemfindings" style="color:#d2322d"> <strong>Choose area to select date</strong></div>
+                                            <div id="dateset_viewitemfindings"style="display:none">
+                                                <select data-plugin-selectTwo name="datedash_viewitemfindings" id="datedash_viewitemfindings" class="form-control populate" style="display:" onChange='changedate_viewitemfindings(this.value)' required>
+                                                <option>All </option>
+                                                    <?php foreach ($results as $row) { ?>
+                                                            <option value="<?php echo $row['Date_Checked']?>"><?php echo $row['Date_Checked']?></option>
+                                                    <?php } ?>
+                                                </select>
+                                            </div>
+                                            <?php } ?> 
+
+                                    </div>
+                                    <div style="display:none" id="dashboardtable_viewitemfindings" class="col-sm-9"> </div>
+                            </div>
+
+                                <section class="panel">	
+                                    <div class="row mg-files" data-sort-destination data-sort-id="media-gallery">
+                                        <div class="isotope-item document">
+                                            <div style="margin:20px;">
+                                              
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+                        </section>
+
+
+
+
+
+
+                    </div>
+
+                    <div class="col-md-12" style="display:none" id="viewitemfindings_structural">
+                        <section class="panel" style="background-color:#ffffff">
+                            <header class="panel-heading">
+                                <h2 class="panel-title">Structural Findings</h2>
+                                    <p class="panel-subtitle">
+                                        Per Area
+                                    </p>
+                            </header>
+                            <div class="form-group" style="margin-top:30px;">
+                                   
+                                    <div class="col-sm-3">
+
+                                        Report Type: <select d-ata-plugin-selectTwo name="" id="changereport" class="form-control populate" onChange='changereporttype(this.value)' required>
+                                                <option value="viewscores_phase">Area Score</option>
+                                                <option value="viewscores_building">Phase Score</option>
+                                                <option value="viewitemfindings_sanitation">Sanitation Scores</option>
+                                                <option value="viewitemfindings_structural">Structural Scores</option>
+                                                <option value="viewitemfindings_equipment">Equipment Scores</option>
+                                                </select>
+                                            <?php
+                                            $pdo = new PDO('mysql:host=localhost;dbname=aurora', 'root', '');
+                                            $sql = "SELECT * FROM checklist_grade left join area on checklist_grade.Aid = area.Aid left join phase on checklist_grade.Pid=phase.Pid 
+                                            left join building on phase.Bid = building .id  Group By building.id";
+                                            $stmt = $pdo->prepare($sql);
+                                            $stmt->execute();
+                                            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                            if ($stmt->rowCount() > 0) { ?>
+                                    
+                                            Choose Area <select data-plugin-selectTwo name="area_viewitemfindings_structural" id="area_viewitemfindings_structural" class="form-control populate" onChange='changedata_viewitemfindings_structural(this.value)' required>
+                                                <?php foreach ($results as $row) { ?>
+                                                        <optgroup label="<?php echo $row['PName']?>">
+                                                            <option value="<?php echo $row['Aid']?>"><?php echo $row['AName']?></option>
+                                                        </optgroup>	
+                                                    
+                                                
+                                                <?php } ?>
+                                            </select>
+                                            <?php } ?> 
+
+                                            <?php
+                                            $pdo = new PDO('mysql:host=localhost;dbname=aurora', 'root', '');
+                                            $sql = "SELECT * FROM checklist_grade left join phase on checklist_grade.Pid=phase.Pid 
+                                            left join building on phase.Bid = building .id  Group By checklist_grade.Date_Checked";
+                                            $stmt = $pdo->prepare($sql);
+                                            $stmt->execute();
+                                            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                            if ($stmt->rowCount() > 0) { ?>
+                                            
+                                            Choose Date: <div id="dateunset_viewitemfindings_structural" style="color:#d2322d"> <strong>Choose area to select date</strong></div>
+                                            <div id="dateset_viewitemfindings_structural"style="display:none">
+                                                <select data-plugin-selectTwo name="datedash_viewitemfindings_structural" id="datedash_viewitemfindings_structural" class="form-control populate" style="display:" onChange='changedate_viewitemfindings_structural(this.value)' required>
+                                                        <option>All </option>
+                                                    <?php foreach ($results as $row) { ?>
+                                                            <option value="<?php echo $row['Date_Checked']?>"><?php echo $row['Date_Checked']?></option>
+                                                    <?php } ?>
+                                                </select>
+                                            </div>
+                                            <?php } ?> 
+
+                                    </div>
+                                    <div style="display:none" id="dashboardtable_viewitemfindings_structural" class="col-sm-9"> </div>
+                            </div>
+
+                                <section class="panel">	
+                                    <div class="row mg-files" data-sort-destination data-sort-id="media-gallery">
+                                        <div class="isotope-item document">
+                                            <div style="margin:20px;">
+                                               
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+                        </section>
+
+
+
+
+
+
+                    </div>
+
+                    <div class="col-md-12" style="display:none" id="viewitemfindings_equipment">
+                        <section class="panel" style="background-color:#ffffff">
+                            <header class="panel-heading">
+                                <h2 class="panel-title">Equipment Findings</h2>
+                                    <p class="panel-subtitle">
+                                        Per Area
+                                    </p>
+                            </header>
+                            <div class="form-group" style="margin-top:30px;">
+                            
+                                    <div class="col-sm-3">
+
+                                        Report Type: <select d-ata-plugin-selectTwo name="" id="changereport" class="form-control populate" onChange='changereporttype(this.value)' required>
+                                                <option value="viewscores_phase">Area Score</option>
+                                                <option value="viewscores_building">Phase Score</option>
+                                                <option value="viewitemfindings_sanitation">Sanitation Scores</option>
+                                                <option value="viewitemfindings_structural">Structural Scores</option>
+                                                <option value="viewitemfindings_equipment">Equipment Scores</option>
+                                                </select>
+                                            <?php
+                                            $pdo = new PDO('mysql:host=localhost;dbname=aurora', 'root', '');
+                                            $sql = "SELECT * FROM equipment_grade left join area on equipment_grade.Aid = area.Aid left join phase on area.Pid=phase.Pid 
+                                            WHERE equipment_grade.Name != 'No Equipment'
+                                              Group By area.Aid";
+                                            $stmt = $pdo->prepare($sql);
+                                            $stmt->execute();
+                                            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                            if ($stmt->rowCount() > 0) { ?>
+                                    
+                                            Choose Area <select data-plugin-selectTwo name="area_viewitemfindings_equipment" id="area_viewitemfindings_equipment" class="form-control populate" onChange='changedata_viewitemfindings_equipment(this.value)' required>
+                                                <?php foreach ($results as $row) { ?>
+                                                        <optgroup label="<?php echo $row['PName']?>">
+                                                            <option value="<?php echo $row['Aid']?>"><?php echo $row['AName']?></option>
+                                                        </optgroup>	
+                                                    
+                                                
+                                                <?php } ?>
+                                            </select>
+                                            <?php } ?> 
+
+                                            <?php
+                                            $pdo = new PDO('mysql:host=localhost;dbname=aurora', 'root', '');
+                                            $sql = "SELECT * FROM equipment_grade left join area on equipment_grade.Aid = area.Aid left join phase on area.Pid=phase.Pid 
+                                            left join building on phase.Bid = building .id  Group By equipment_grade.Date_Checked_equipment";
+                                            $stmt = $pdo->prepare($sql);
+                                            $stmt->execute();
+                                            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                            if ($stmt->rowCount() > 0) { ?>
+                                            
+                                            Choose Date: <div id="dateunset_viewitemfindings_equipment" style="color:#d2322d"> <strong>Choose area to select date</strong></div>
+                                            <div id="dateset_viewitemfindings_equipment"style="display:none">
+                                                <select data-plugin-selectTwo name="datedash_viewitemfindings_equipment" id="datedash_viewitemfindings_equipment" class="form-control populate" style="display:" onChange='changedate_viewitemfindings_equipment(this.value)' required>
+                                                        <option>All </option>
+                                                    <?php foreach ($results as $row) { ?>
+                                                            <option value="<?php echo $row['Date_Checked_equipment']?>"><?php echo $row['Date_Checked_equipment']?></option>
+                                                    <?php } ?>
+                                                </select>
+                                            </div>
+                                            <?php } ?> 
+
+                                    </div>
+                                    <div style="display:none" id="dashboardtable_viewitemfindings_equipment" class="col-sm-9"> </div>
+                            </div>
+
+                                <section class="panel">	
+                                    <div class="row mg-files" data-sort-destination data-sort-id="media-gallery">
+                                        <div class="isotope-item document">
+                                            <div style="margin:20px;">
+                                               
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+                        </section>
+
+
+
+
+
+
+                    </div>
+                    
+
+                    <!-- FOR SUPERVISORS -->
+                    <div class="col-md-12" id="viewscores_building" style="display:none">
+                        <section class="panel" style="background-color:#ffffff">
+                            <header class="panel-heading">
+                                <h2 class="panel-title">Summary of Scores</h2>
+                                    <p class="panel-subtitle">
+                                        Per Building
+                                    </p>
+                            </header>
+                            <div class="form-group" style="margin-top:30px;">
+                            
+                                    
+                                    <div class="col-sm-3">
+
+                                    Report Type: <select d-ata-plugin-selectTwo name="" id="changereport" class="form-control populate" onChange='changereporttype(this.value)' required>
+                                            <option value="viewscores_phase">Area Score</option>
+                                            <option value="viewscores_building">Phase Score</option>
+                                            <option value="viewitemfindings_sanitation">Sanitation Scores</option>
+                                            <option value="viewitemfindings_structural">Structural Scores</option>
+                                            <option value="viewitemfindings_equipment">Equipment Scores</option>
+                                            </select>
+
+                                            <?php
+                                            $pdo = new PDO('mysql:host=localhost;dbname=aurora', 'root', '');
+                                            $sql = "SELECT * FROM checklist_grade left join phase on checklist_grade.Pid=phase.Pid 
+                                            left join building on phase.Bid = building .id  Group By building.id";
+                                            $stmt = $pdo->prepare($sql);
+                                            $stmt->execute();
+                                            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                            if ($stmt->rowCount() > 0) { ?>
+                                    
+                                            Choose Phase <select data-plugin-selectTwo name="building_viewscores" id="building_viewscores" class="form-control populate" onChange='changedata_building_viewscores(this.value)' required>
+                                                <?php foreach ($results as $row) { ?>
+                                                        <option value="<?php echo $row['id']?>"><?php echo $row['Name']?></option>
+                                                <?php } ?>
+                                            </select>
+                                            <?php } ?> 
+
+                                            <?php
+                                            $pdo = new PDO('mysql:host=localhost;dbname=aurora', 'root', '');
+                                            $sql = "SELECT * FROM checklist_grade left join phase on checklist_grade.Pid=phase.Pid 
+                                            left join building on phase.Bid = building .id  Group By checklist_grade.Date_Checked ORDER BY checklist_grade.Date_Checked DESC ";
+                                            $stmt = $pdo->prepare($sql);
+                                            $stmt->execute();
+                                            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                            if ($stmt->rowCount() > 0) { ?>
+                                            
+                                            Choose Date: <div id="dateunset_building_viewscores" style="color:#d2322d"> <strong>Choose Phase to select date</strong></div>
+                                            <div id="dateset_building_viewscores"style="display:none">
+                                                <select data-plugin-selectTwo name="datedash_building_viewscores" id="datedash_building_viewscores" class="form-control populate" style="display:" onChange='changedate_building_viewscores(this.value)' required>
+                                                   <option>All </option>
+                                                    <?php foreach ($results as $row) { ?>
+                                                            <option value="<?php echo $row['Date_Checked']?>"><?php echo $row['Date_Checked']?></option>
+                                                    <?php } ?>
+                                                </select>
+                                            </div>
+                                            <?php } ?> 
+
+                                    </div>
+
+                                    <div class="col-sm-9" style="display:none" id="dashboardtable_viewscores_building"> </div>
+
+
+                                    
+                            </div>
+
+                         
+                        </section>
+                    </div>
+
+                    
+                    <div class="col-md-12" id="chartContainer" style="height: 370px; width: 100%;"></div>
+                    <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+
+            <div>
+            <?php include 'rightsidebar.php'?>
+            </div>
+		</section>
+
+		<!-- Vendor -->
+		<script src="assets/vendor/jquery/jquery.js"></script>
+		<script src="assets/vendor/jquery-browser-mobile/jquery.browser.mobile.js"></script>
+		<script src="assets/vendor/bootstrap/js/bootstrap.js"></script>
+		<script src="assets/vendor/nanoscroller/nanoscroller.js"></script>
+		<script src="assets/vendor/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+		<script src="assets/vendor/magnific-popup/magnific-popup.js"></script>
+		<script src="assets/vendor/jquery-placeholder/jquery.placeholder.js"></script>
+		
+		<!-- Specific Page Vendor -->
+		<script src="assets/vendor/jquery-ui/js/jquery-ui-1.10.4.custom.js"></script>
+		<script src="assets/vendor/jquery-ui-touch-punch/jquery.ui.touch-punch.js"></script>
+		<script src="assets/vendor/select2/select2.js"></script>
+		<script src="assets/vendor/bootstrap-multiselect/bootstrap-multiselect.js"></script>
+		<script src="assets/vendor/jquery-maskedinput/jquery.maskedinput.js"></script>
+		<script src="assets/vendor/bootstrap-tagsinput/bootstrap-tagsinput.js"></script>
+		<script src="assets/vendor/bootstrap-colorpicker/js/bootstrap-colorpicker.js"></script>
+		<script src="assets/vendor/bootstrap-timepicker/js/bootstrap-timepicker.js"></script>
+		<script src="assets/vendor/fuelux/js/spinner.js"></script>
+		<script src="assets/vendor/dropzone/dropzone.js"></script>
+		<script src="assets/vendor/bootstrap-markdown/js/markdown.js"></script>
+		<script src="assets/vendor/bootstrap-markdown/js/to-markdown.js"></script>
+		<script src="assets/vendor/bootstrap-markdown/js/bootstrap-markdown.js"></script>
+		<script src="assets/vendor/codemirror/lib/codemirror.js"></script>
+		<script src="assets/vendor/codemirror/addon/selection/active-line.js"></script>
+		<script src="assets/vendor/codemirror/addon/edit/matchbrackets.js"></script>
+		<script src="assets/vendor/codemirror/mode/javascript/javascript.js"></script>
+		<script src="assets/vendor/codemirror/mode/xml/xml.js"></script>
+		<script src="assets/vendor/codemirror/mode/htmlmixed/htmlmixed.js"></script>
+		<script src="assets/vendor/codemirror/mode/css/css.js"></script>
+		<script src="assets/vendor/summernote/summernote.js"></script>
+		<script src="assets/vendor/bootstrap-maxlength/bootstrap-maxlength.js"></script>
+		<script src="assets/vendor/ios7-switch/ios7-switch.js"></script>
+		<script src="assets/vendor/jquery-datatables/media/js/jquery.dataTables.js"></script>
+		<script src="assets/vendor/jquery-datatables-bs3/assets/js/datatables.js"></script>
+		<script src="assets/vendor/jquery-datatables/extras/TableTools/js/dataTables.tableTools.min.js"></script>
+		
+		<!-- Theme Base, Components and Settings -->
+		<script src="assets/javascripts/theme.js"></script>
+		
+		<!-- Theme Custom -->
+		<script src="assets/javascripts/theme.custom.js"></script>
+		
+		<!-- Theme Initialization Files -->
+		<script src="assets/javascripts/theme.init.js"></script>
+
+		<!-- Examples -->
+		<!-- <script src="assets/javascripts/tables/examples.datatables.ajax.js"></script> -->
+		<script src="assets/javascripts/forms/examples.advanced.form.js" ></script>	    
+		<script src="assets/javascripts/tables/examples.datatables.default.js"></script>
+		<script src="Report/history.js"></script>
+		<!-- <script src="assets/javascripts/tables/examples.datatables.tabletools.js"></script> -->
+		<script src="assets/javascripts/ui-elements/examples.modals.js"></script>
+		
+	</body>
+</html>
